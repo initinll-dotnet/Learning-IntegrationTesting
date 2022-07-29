@@ -2,6 +2,7 @@
 using Customers.Api.Database;
 
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 
 using Microsoft.AspNetCore.Hosting;
@@ -15,23 +16,40 @@ namespace Customer.Api.Tests.Integration;
 
 public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
 {
-    private readonly TestcontainersContainer _dbContainer =
-        new TestcontainersBuilder<TestcontainersContainer>()
-        .WithImage("postgres:latest")
-        .WithEnvironment("POSTGRES_USER", "course")
-        .WithEnvironment("POSTGRES_PASSWORD", "changeme")
-        .WithEnvironment("POSTGRES_DB", "mydb")
-        .WithPortBinding(5555, 5432)
-        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
-        .Build();
+    // option 1
+    //private readonly TestcontainersContainer _dbContainer =
+    //    new TestcontainersBuilder<TestcontainersContainer>()
+    //    .WithImage("postgres:latest")
+    //    .WithEnvironment("POSTGRES_USER", "course")
+    //    .WithEnvironment("POSTGRES_PASSWORD", "changeme")
+    //    .WithEnvironment("POSTGRES_DB", "mydb")
+    //    .WithPortBinding(5555, 5432)
+    //    .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
+    //    .Build();
+
+    // option 2
+    private readonly TestcontainerDatabase _dbContainer =
+        new TestcontainersBuilder<PostgreSqlTestcontainer>()
+        .WithDatabase(new PostgreSqlTestcontainerConfiguration
+        {
+            Database = "db",
+            Username = "course",
+            Password = "changeme"
+        }).Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services => 
         {
             services.RemoveAll(typeof(IDbConnectionFactory));
+
+            // option 1
+            //services.TryAddSingleton<IDbConnectionFactory>(_ =>
+            //new NpgsqlConnectionFactory("Server=localhost;Port=5555;Database=mydb;User ID=course;Password=changeme;"));
+
+            // option 2
             services.TryAddSingleton<IDbConnectionFactory>(_ =>
-            new NpgsqlConnectionFactory("Server=localhost;Port=5555;Database=mydb;User ID=course;Password=changeme;"));
+            new NpgsqlConnectionFactory(_dbContainer.ConnectionString));
         });
     }
 
