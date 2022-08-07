@@ -17,7 +17,6 @@ namespace Customer.Api.Tests.Integration.CustomerController;
 
 public class CreateCustomerControllerTests : IClassFixture<CustomerApiFactory>
 {
-    private readonly CustomerApiFactory _apiFactory;
     private readonly HttpClient _httpClient;
 
     private readonly Faker<CustomerRequest> _customerGenerator = new Faker<CustomerRequest>()
@@ -29,8 +28,7 @@ public class CreateCustomerControllerTests : IClassFixture<CustomerApiFactory>
 
     public CreateCustomerControllerTests(CustomerApiFactory apiFactory)
     {
-        _apiFactory = apiFactory;
-        _httpClient = _apiFactory.CreateClient();
+        _httpClient = apiFactory.CreateClient();
     }
 
     [Fact]
