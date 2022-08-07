@@ -18,6 +18,8 @@ namespace Customer.Api.Tests.Integration;
 
 public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
 {
+    public const string ValidGithubUser = "validuser";
+
     // option 1
     //private readonly TestcontainersContainer _dbContainer =
     //    new TestcontainersBuilder<TestcontainersContainer>()
@@ -69,7 +71,7 @@ public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     public async Task InitializeAsync()
     {
         _gitHubApiServer.Start();
-        _gitHubApiServer.SetupUser("validuser");
+        _gitHubApiServer.SetupUser(ValidGithubUser);
         await _dbContainer.StartAsync();
     }
 
