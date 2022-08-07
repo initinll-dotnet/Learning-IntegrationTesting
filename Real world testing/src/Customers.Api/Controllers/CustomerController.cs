@@ -51,8 +51,7 @@ public class CustomerController : ControllerBase
     }
     
     [HttpPut("customers/{id:guid}")]
-    public async Task<IActionResult> Update(
-        [FromMultiSource] UpdateCustomerRequest request)
+    public async Task<IActionResult> Update([FromMultiSource] UpdateCustomerRequest request)
     {
         var existingCustomer = await _customerService.GetAsync(request.Id);
 
