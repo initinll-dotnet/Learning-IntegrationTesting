@@ -19,6 +19,7 @@ namespace Customer.Api.Tests.Integration;
 public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
 {
     public const string ValidGithubUser = "validuser";
+    public const string ThrottledGithubUser = "throttleuser";
 
     // option 1
     //private readonly TestcontainersContainer _dbContainer =
@@ -72,6 +73,7 @@ public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
     {
         _gitHubApiServer.Start();
         _gitHubApiServer.SetupUser(ValidGithubUser);
+        _gitHubApiServer.SetupThrottledUser(ThrottledGithubUser);
         await _dbContainer.StartAsync();
     }
 

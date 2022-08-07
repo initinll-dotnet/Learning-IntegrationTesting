@@ -31,6 +31,20 @@ public class GitHubApiServer : IDisposable
                 .WithStatusCode(200));
     }
 
+    public void SetupThrottledUser(string username)
+    {
+        _server
+            .Given(Request
+                .Create()
+                .WithPath($"/users/{username}")
+                .UsingGet())
+            .RespondWith(Response
+                .Create()
+                //.WithBody(body)
+                .WithHeader("content-type", "application/json; charset=utf-8")
+                .WithStatusCode(403));
+    }
+
     static string GenerateGithubUserResponseBody(string username)
     {
         return $@"{{'login': '{username}',

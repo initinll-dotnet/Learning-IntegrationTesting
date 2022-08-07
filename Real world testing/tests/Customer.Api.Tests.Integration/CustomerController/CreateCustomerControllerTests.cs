@@ -97,4 +97,20 @@ public class CreateCustomerControllerTests : IClassFixture<CustomerApiFactory>
         error!.Title.Should().Be("One or more validation errors occurred.");
         error!.Errors["GitHubUsername"][0].Should().Be($"There is no GitHub user with username {invalidGithubUser}");
     }
+
+    [Fact]
+    public async Task Create_ReturnsInternalServerError_WhenGithubIsThrottled()
+    {
+        // Arrange
+        var customer = _customerGenerator
+            .Clone()
+            .RuleFor(x => x.GitHubUsername, CustomerApiFactory.ThrottledGithubUser)
+            .Generate();
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("customers", customer);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+    }
 }
