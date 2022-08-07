@@ -8,7 +8,9 @@ using DotNet.Testcontainers.Containers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Net.Http.Headers;
 
 using Xunit;
 
@@ -37,6 +39,8 @@ public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             Password = "changeme"
         }).Build();
 
+    private readonly GitHubApiServer _gitHubApiServer = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services => 
@@ -50,16 +54,28 @@ public class CustomerApiFactory : WebApplicationFactory<IApiMarker>, IAsyncLifet
             // option 2
             services.TryAddSingleton<IDbConnectionFactory>(_ =>
             new NpgsqlConnectionFactory(_dbContainer.ConnectionString));
+
+            services.AddHttpClient("GitHub", httpClient =>
+            {
+                httpClient.BaseAddress = new Uri(_gitHubApiServer.Url);
+                httpClient.DefaultRequestHeaders.Add(
+                    HeaderNames.Accept, "application/vnd.github.v3+json");
+                httpClient.DefaultRequestHeaders.Add(
+                    HeaderNames.UserAgent, $"Course-{Environment.MachineName}");
+            });
         });
     }
 
     public async Task InitializeAsync()
     {
+        _gitHubApiServer.Start();
+        _gitHubApiServer.SetupUser("validuser");
         await _dbContainer.StartAsync();
     }
 
     public new async Task DisposeAsync()
     {
         await _dbContainer.DisposeAsync();
+        _gitHubApiServer.Dispose();
     }
 }
